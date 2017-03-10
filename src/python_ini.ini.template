@@ -1,0 +1,19 @@
+[Jenkins_Parameters]
+Server_Link: <you Jenkins URL http://localhost:8080>
+Job_Name: <Place the job name you want>
+Job_Pwd: <Jenkins working directory usually /Users/Shared/Jenkins/Home/jobs/>
+Main_Repo_Name: <Root repository name>
+Log_Folder_Name: Console_Logs
+Results_Folder_Name: Results
+Job_Cfg: config.xml
+
+[Test_Env]
+Test_Script_Path: <Test script file full path>
+Test_Script_File: <Test script file>
+
+[User_Parameters]
+Username: <Username>
+Password: <User password>
+
+[Students_Info]
+Students_file: <JSON students file name>

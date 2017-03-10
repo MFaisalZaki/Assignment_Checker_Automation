@@ -1,0 +1,20 @@
+[
+    {
+        "UPLOAD_NEW_ASSIGNMENT_TEMPLATE": "",
+        "NEW_ASSIGNMENT_TEMPLATE_PATH":"",
+        "ASSIGNMENT_NAME":"",
+        "EXECUTE_TEST":"",
+        "STUDENT_ID": "ABC ",
+        "STUDENT_ACCESS_TOKEN": "54a410beee4c37d3326098894080d6c01b0",
+        "STUDENT_REPO_USERNAME":"StuMain",
+        "STUDENT_REPO_NAME":"",
+        "TEST_CASE_REPO_LOCAL_PATH":"",
+        "STUDENT_INIT_REPO":"",
+        "LOG_FOLDER_NAME":"",
+        "RESULTS_FOLDER_NAME":"",
+        "COURSE_NAME":"",
+        "UPLOAD_JOB_RESULTS":"",
+        "BASH_TESTING_SCRIPT":"",
+        "BASH_TESTING_SCRIPT_PATH":""
+    }
+]

@@ -1,0 +1,212 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>STUDENT_ID</name>
+          <description>This environment variable should be used for updating a shared Google spreadsheet, Where this sheet lists all the student&apos;s delivered and checked assignments.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>STUDENT_REPO_USERNAME</name>
+          <description>This environment variable should be used to hold the student username on Github.
+</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>STUDENT_REPO_NAME</name>
+          <description>This environment variable should hold the repository name. </description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>STUDENT_ACCESS_TOKEN</name>
+          <description>This environment variable should be used for cloning student&apos;s repository.
+This token must have the following privileges:
+    1. repo - status, repo_deployment, public_repo
+The advantage behind using an access token is that it can be revoked at anytime and gives us the required privileges to push test cases reports. </description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TEST_CASE_REPO_LOCAL_PATH</name>
+          <description>This environment variable should be used to hold the path for professor&apos;s/TA&apos;s repository. </description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>STUDENT_INIT_REPO</name>
+          <description>This environment variable controls the creation of a new repository, This environment variable should only be enabled once for each student per course.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>UPLOAD_NEW_ASSIGNMENT_TEMPLATE</name>
+          <description>This environment variable should be used only once for each assignment to upload the assignment file(s) templates which will be solved by the students.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>COURSE_NAME</name>
+          <description>This environment variable should be used to indicate the course name.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>ASSIGNMENT_NAME</name>
+          <description>This environment variable should be used to indicate only the assignment name.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>NEW_ASSIGNMENT_TEMPLATE_PATH</name>
+          <description>This environment variable should be used only to point to assignment template required to be uploaded to student&apos;s repository.
+This variable should be used only when environment variable UPLOAD_NEW_ASSIGNMENT_TEMPLATE is set to true.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>EXECUTE_TEST</name>
+          <description>This environment variable is required to indicate that the we need to start executing at least one test case.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.BooleanParameterDefinition>
+          <name>UPLOAD_JOB_RESULTS</name>
+          <description>This environment variable indicates that there are valid results in the workspace and needs to be pushed to repository.</description>
+          <defaultValue>true</defaultValue>
+        </hudson.model.BooleanParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>LOG_FOLDER_NAME</name>
+          <description>This environment variable holds folder&apos;s name which contains all error logs generated from Jenkins jobs failures</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RESULTS_FOLDER_NAME</name>
+          <description>This environment variable holds folder&apos;s name which contains all test cases results.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BASH_TESTING_SCRIPT</name>
+          <description>This environment variable holds the testing script which will be executed by Jenkins.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>BASH_TESTING_SCRIPT_PATH</name>
+          <description>This environment variable holds the testing script path.</description>
+          <defaultValue>NA</defaultValue>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command># Clean workspace from any folders
+# Remove any cloned student repository.
+##if [ -d &quot;$STUDENT_REPO_NAME&quot; ]; then
+if [ &quot;$(ls -A $DIR)&quot; ] &amp;&amp; [ &quot;$UPLOAD_JOB_RESULTS&quot; = &quot;false&quot; ];then 
+	rm -r *
+fi
+    
+# Remove .git folder if exists
+if [ -d &quot;.git&quot; ]; then
+	rm -r .git
+fi
+
+
+# Check if we need to init repository for student.
+if [ &quot;$STUDENT_INIT_REPO&quot; = &quot;true&quot; ]
+then
+	echo &quot;Create repository for student&quot;
+    echo &quot;# University repository will contain of ur assignments&quot; &gt; README.md
+    # ToDo: Make repository creation configurable.
+    echo $STUDENT_ACCESS_TOKEN | curl -u $STUDENT_REPO_USERNAME https://api.github.com/user/repos -d &apos;{&quot;name&quot;:&quot;University&quot;}&apos;
+    git init
+    git add README.md
+    git commit -m &quot;Init university repository&quot;
+    git remote add origin https://$STUDENT_ACCESS_TOKEN@github.com/$STUDENT_REPO_USERNAME/$STUDENT_REPO_NAME.git
+    git remote set-url origin https://$STUDENT_ACCESS_TOKEN@github.com/$STUDENT_REPO_USERNAME/$STUDENT_REPO_NAME.git
+    git push -u origin master
+fi
+
+# Check if we need to upload a new assignment template
+if [ &quot;$UPLOAD_NEW_ASSIGNMENT_TEMPLATE&quot; = &quot;true&quot; ]
+then
+	# Clone the repository
+    git clone https://$STUDENT_ACCESS_TOKEN@github.com/$STUDENT_REPO_USERNAME/$STUDENT_REPO_NAME.git
+	cd $STUDENT_REPO_NAME
+    
+    # Create assignment folder if doesn&apos;t exsists
+    if [ ! -d &quot;$COURSE_NAME&quot; ]; then
+    	mkdir &quot;$COURSE_NAME&quot;
+    fi
+    
+    # Copy assignment template folder.
+    cp -rf $NEW_ASSIGNMENT_TEMPLATE_PATH ./$COURSE_NAME/$ASSIGNMENT_NAME
+    
+    # Add it to repository.
+    git add $COURSE_NAME/$ASSIGNMENT_NAME/*
+    git commit -m &quot;Assignment template upload&quot;
+    
+    # Push new assignment template.
+    git push -u origin master
+fi
+
+# Check if we need to execute any test cases
+if [ &quot;$EXECUTE_TEST&quot; = &quot;true&quot; ] &amp;&amp; [ &quot;$UPLOAD_JOB_RESULTS&quot; = &quot;false&quot; ]
+then
+    
+	# Clone the repository and then change directory to the selected test case assignment
+    git clone https://$STUDENT_ACCESS_TOKEN@github.com/$STUDENT_REPO_USERNAME/$STUDENT_REPO_NAME.git
+	cd &quot;$STUDENT_REPO_NAME&quot;
+    
+    # Create both folder if not exsists for Testcase results and Console Log.
+    if [ ! -d &quot;$COURSE_NAME&quot;&quot;/&quot;&quot;$ASSIGNMENT_NAME&quot;&quot;/&quot;&quot;$LOG_FOLDER_NAME&quot; ]; then
+	    mkdir &quot;$COURSE_NAME&quot;&quot;/&quot;$ASSIGNMENT_NAME&quot;/&quot;$LOG_FOLDER_NAME
+	fi
+    
+    if [ ! -d &quot;$COURSE_NAME&quot;&quot;/&quot;&quot;$ASSIGNMENT_NAME&quot;&quot;/&quot;&quot;$RESULTS_FOLDER_NAME&quot; ]; then
+    	mkdir &quot;$COURSE_NAME&quot;&quot;/&quot;$ASSIGNMENT_NAME&quot;/&quot;$RESULTS_FOLDER_NAME
+    fi
+    
+    
+    # ToDo: Recheck this condition, but it working if you supplied the correct values for the testing script
+    if [ ! &quot;$BASH_TESTING_SCRIPT_PATH&quot; = &quot;NA&quot; ] &amp;&amp; [ ! &quot;$BASH_TESTING_SCRIPT&quot; = &quot;NA&quot; ]
+    then
+    	# Run test script
+    	sh $BASH_TESTING_SCRIPT_PATH/$BASH_TESTING_SCRIPT
+    else
+    	echo &quot;No testing script supplied&quot;
+    fi    
+fi
+
+# Push Console logs if any
+if [ &quot;$UPLOAD_JOB_RESULTS&quot; = &quot;true&quot; ]
+then
+
+    cd &quot;$STUDENT_REPO_NAME&quot;
+    git pull https://$STUDENT_ACCESS_TOKEN@github.com/$STUDENT_REPO_USERNAME/$STUDENT_REPO_NAME.git
+	git status
+    
+    if [ &quot;$(ls -A $COURSE_NAME/$ASSIGNMENT_NAME/$LOG_FOLDER_NAME)&quot; ]; then
+    	
+     	git add ./$COURSE_NAME/$ASSIGNMENT_NAME/$LOG_FOLDER_NAME/*
+    	git commit -m &quot;$ASSIGNMENT_NAME&quot;&quot;_Log&quot;
+    	git push -u origin master
+    fi
+    
+    if [ &quot;$(ls -A $COURSE_NAME/$ASSIGNMENT_NAME/$RESULTS_FOLDER_NAME)&quot; ]; then
+    	
+   	    git add ./$COURSE_NAME/$ASSIGNMENT_NAME/$RESULTS_FOLDER_NAME/*
+    	git commit -m &quot;$ASSIGNMENT_NAME&quot;&quot;_Results&quot;
+    	git push -u origin master
+    fi
+fi
+    </command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>
